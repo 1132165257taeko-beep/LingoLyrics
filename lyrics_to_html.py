@@ -7,6 +7,16 @@ from typing import Any, Dict, List
 
 
 NOTE_MARKS = tuple(chr(code) for code in range(0x2460, 0x2469 + 1))
+TIMELINE_METADATA_PREFIXES = (
+    "by:",
+    "作词",
+    "作曲",
+    "编曲",
+    "編曲",
+    "词:",
+    "曲:",
+    "詞:",
+)
 
 
 def read_text(path: Path) -> str:
@@ -98,7 +108,7 @@ def parse_timeline(timeline_text: str) -> List[Dict[str, Any]]:
             continue
         minutes, seconds, fraction, text = match.groups()
         text = text.strip()
-        if not text or text.startswith("by:"):
+        if not text or text.startswith(TIMELINE_METADATA_PREFIXES):
             continue
         timeline.append({"time": parse_lrc_time(minutes, seconds, fraction), "text": text})
 
@@ -187,8 +197,8 @@ main {{ max-width: 1180px; width: 100%; margin: 0 auto; padding: 22px clamp(14px
 .phonetic {{ margin-top: 3px; color: var(--accent-2); font-size: 15px; line-height: 1.25; font-weight: 500; white-space: nowrap; }}
 .line.active .phonetic {{ font-size: 17px; }}
 .romaji {{ margin-top: 8px; color: var(--accent-2); font-size: 16px; line-height: 1.55; }}
-.romaji strong {{ color: #0f5f59; font-weight: 800; }}
-.romaji em {{ color: #8b5e27; font-style: italic; }}
+.romaji strong {{ color: #8b5e27; font-weight: 800; }}
+.romaji em {{ color: #8b5e27; font-style: normal;}}
 .translation {{ margin-top: 8px; color: #4c4840; font-size: 17px; line-height: 1.55; }}
 .notes {{ margin-top: 12px; padding-top: 10px; border-top: 1px solid #eadfd4; color: #5c5147; font-size: 14px; line-height: 1.75; }}
 .notes div {{ margin: 3px 0; }}
@@ -205,24 +215,27 @@ main {{ max-width: 1180px; width: 100%; margin: 0 auto; padding: 22px clamp(14px
 .now strong {{ display: block; color: var(--ink); font-size: 18px; margin-bottom: 8px; }}
 .current-notes {{ margin-top: 10px; color: #574c43; font-size: 14px; line-height: 1.7; }}
 footer {{ border-top: 1px solid var(--line); background: rgba(255,253,250,.96); padding: 13px clamp(18px, 4vw, 44px); }}
-.transport {{ max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; }}
+.transport {{ max-width: 1180px; margin: 0 auto; display: grid; grid-template-columns: auto auto 1fr auto; align-items: center; gap: 14px; }}
+.speed-controls {{ display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--line); border-radius: 8px; padding: 3px; background: var(--panel); }}
+.speed-btn {{ height: 30px; min-width: 44px; padding: 0 8px; border: 0; border-radius: 6px; background: transparent; font-size: 13px; justify-content: center; }}
+.speed-btn.active {{ background: var(--accent-2); color: white; }}
 .time {{ color: var(--muted); font-variant-numeric: tabular-nums; font-size: 13px; min-width: 102px; text-align: right; }}
 .progress {{ width: 100%; accent-color: var(--accent); }}
 body.hide-romaji .romaji, body.hide-translation .translation, body.hide-notes .notes {{ display: none; }}
 body.hide-romaji .phonetic {{ display: none; }}
-@media (max-width: 860px) {{ .topbar {{ align-items: flex-start; flex-direction: column; }} .controls {{ justify-content: flex-start; }} main {{ grid-template-columns: 1fr; }} .stage {{ min-height: 58vh; max-height: 58vh; }} .lyrics {{ padding-left: 16px; padding-right: 16px; }} .line {{ padding: 14px; margin-bottom: 20px; }} .jp, .word-text {{ font-size: 21px; }} .line.active .jp, .line.active .word-text {{ font-size: 24px; }} .transport {{ grid-template-columns: auto 1fr; }} .time {{ grid-column: 1 / -1; text-align: left; }} }}
+@media (max-width: 860px) {{ .topbar {{ align-items: flex-start; flex-direction: column; }} .controls {{ justify-content: flex-start; }} main {{ grid-template-columns: 1fr; }} .stage {{ min-height: 58vh; max-height: 58vh; }} .lyrics {{ padding-left: 16px; padding-right: 16px; }} .line {{ padding: 14px; margin-bottom: 20px; }} .jp, .word-text {{ font-size: 21px; }} .line.active .jp, .line.active .word-text {{ font-size: 24px; }} .transport {{ grid-template-columns: auto 1fr; }} .speed-controls {{ grid-column: 1 / -1; width: max-content; }} .time {{ grid-column: 1 / -1; text-align: left; }} }}
 </style>
 </head>
 <body>
 <div class="app">
 <header><div class="topbar"><div class="title"><h1 id="songTitle"></h1><p id="songSubtitle"></p></div><div class="controls"><label class="file-label" title="选择本地音频文件">音频<input id="audioFile" type="file" accept="audio/*" /></label><button id="resetBtn" title="回到开头">重置</button></div></div></header>
 <main><section class="stage" aria-label="滚动歌词"><div id="lyrics" class="lyrics"></div></section><aside class="side"><section class="panel"><h2>显示</h2><div class="toggles"><div class="toggle"><span>罗马音</span><span class="switch on" data-toggle="romaji" role="button" tabindex="0" title="显示或隐藏罗马音"></span></div><div class="toggle"><span>中文翻译</span><span class="switch on" data-toggle="translation" role="button" tabindex="0" title="显示或隐藏中文翻译"></span></div><div class="toggle"><span>行内注释</span><span class="switch on" data-toggle="notes" role="button" tabindex="0" title="显示或隐藏每行注释"></span></div><div class="toggle"><span>侧栏注释</span><span class="switch on" data-toggle="sideNotes" role="button" tabindex="0" title="显示或隐藏当前行注释"></span></div></div></section><section class="panel now"><strong>当前行</strong><div id="currentText"></div><div id="currentNotes" class="current-notes"></div></section></aside></main>
-<footer><div class="transport"><button id="playBtn" class="primary" title="播放或暂停">播放</button><input id="progress" class="progress" type="range" min="0" max="1000" value="0" title="拖动调整播放进度" /><div id="time" class="time">00:00 / 00:00</div></div></footer>
+<footer><div class="transport"><button id="playBtn" class="primary" title="播放或暂停">播放</button><div class="speed-controls" aria-label="播放速度"><button class="speed-btn" data-speed="0.5" title="0.5 倍速">0.5x</button><button class="speed-btn" data-speed="0.75" title="0.75 倍速">0.75x</button><button class="speed-btn active" data-speed="1" title="正常速度">1x</button></div><input id="progress" class="progress" type="range" min="0" max="1000" value="0" title="拖动调整播放进度" /><div id="time" class="time">00:00 / 00:00</div></div></footer>
 </div><audio id="audio" src="{audio_src_attr}"></audio><script id="lyric-data" type="application/json">{json_data}</script>
 <script>
 const DATA = JSON.parse(document.getElementById('lyric-data').textContent);
 const lyricsEl = document.getElementById('lyrics'), audio = document.getElementById('audio'), playBtn = document.getElementById('playBtn'), progress = document.getElementById('progress'), timeEl = document.getElementById('time'), currentText = document.getElementById('currentText'), currentNotes = document.getElementById('currentNotes'), audioFile = document.getElementById('audioFile'), resetBtn = document.getElementById('resetBtn');
-let simulatedTime = 0, lastTick = 0, playing = false, activeIndex = -1, useAudio = Boolean(audio.getAttribute('src')), showSideNotes = true;
+let simulatedTime = 0, lastTick = 0, playing = false, activeIndex = -1, useAudio = Boolean(audio.getAttribute('src')), showSideNotes = true, playbackRate = 1;
 const duration = DATA.duration || 1;
 document.getElementById('songTitle').textContent = DATA.title;
 document.getElementById('songSubtitle').textContent = DATA.subtitle || '滚动歌词学习页';
@@ -255,12 +268,13 @@ function setCurrentTime(value) {{ const clamped = Math.max(0, Math.min(value, ge
 function findActiveIndex(time) {{ let lo = 0, hi = DATA.items.length - 1, result = 0; while (lo <= hi) {{ const mid = Math.floor((lo + hi) / 2); if (DATA.items[mid].time <= time) {{ result = mid; lo = mid + 1; }} else hi = mid - 1; }} return result; }}
 function setActive(index) {{ if (index === activeIndex) return; const prev = lyricsEl.querySelector('.line.active'); if (prev) prev.classList.remove('active'); const next = lyricsEl.querySelector(`.line[data-index="${{index}}"]`); if (next) {{ next.classList.add('active'); next.scrollIntoView({{ behavior: 'smooth', block: 'center' }}); }} activeIndex = index; const item = DATA.items[index]; currentText.textContent = item ? item.japanese : ''; currentNotes.innerHTML = showSideNotes && item ? (item.notes || []).map(escapeHtml).join('<br>') : ''; }}
 function update() {{ const now = getCurrentTime(), total = getDuration(); progress.value = total > 0 ? Math.round((now / total) * 1000) : 0; timeEl.textContent = `${{formatTime(now)}} / ${{formatTime(total)}}`; if (DATA.items.length) setActive(findActiveIndex(now)); }}
-function tick(stamp) {{ if (!lastTick) lastTick = stamp; const delta = (stamp - lastTick) / 1000; lastTick = stamp; if (playing && !useAudio) {{ simulatedTime += delta; if (simulatedTime >= duration) {{ simulatedTime = duration; playing = false; playBtn.textContent = '播放'; }} update(); }} requestAnimationFrame(tick); }}
+function tick(stamp) {{ if (!lastTick) lastTick = stamp; const delta = (stamp - lastTick) / 1000; lastTick = stamp; if (playing && !useAudio) {{ simulatedTime += delta * playbackRate; if (simulatedTime >= duration) {{ simulatedTime = duration; playing = false; playBtn.textContent = '播放'; }} update(); }} requestAnimationFrame(tick); }}
 playBtn.addEventListener('click', async () => {{ if (useAudio) {{ if (audio.paused) await audio.play(); else audio.pause(); return; }} playing = !playing; playBtn.textContent = playing ? '暂停' : '播放'; }});
 audio.addEventListener('play', () => {{ playing = true; playBtn.textContent = '暂停'; }}); audio.addEventListener('pause', () => {{ playing = false; playBtn.textContent = '播放'; }}); audio.addEventListener('timeupdate', update); audio.addEventListener('loadedmetadata', update);
-audioFile.addEventListener('change', () => {{ const file = audioFile.files && audioFile.files[0]; if (!file) return; audio.src = URL.createObjectURL(file); useAudio = true; simulatedTime = 0; activeIndex = -1; playBtn.textContent = '播放'; update(); }});
+audioFile.addEventListener('change', () => {{ const file = audioFile.files && audioFile.files[0]; if (!file) return; audio.src = URL.createObjectURL(file); audio.playbackRate = playbackRate; useAudio = true; simulatedTime = 0; activeIndex = -1; playBtn.textContent = '播放'; update(); }});
 progress.addEventListener('input', () => setCurrentTime((Number(progress.value) / 1000) * getDuration()));
 resetBtn.addEventListener('click', () => {{ if (useAudio) audio.pause(); playing = false; playBtn.textContent = '播放'; setCurrentTime(0); }});
+document.querySelectorAll('.speed-btn').forEach(btn => {{ btn.addEventListener('click', () => {{ playbackRate = Number(btn.dataset.speed) || 1; audio.playbackRate = playbackRate; document.querySelectorAll('.speed-btn').forEach(item => item.classList.toggle('active', item === btn)); }}); }});
 document.querySelectorAll('.switch').forEach(sw => {{ const toggle = () => {{ sw.classList.toggle('on'); const key = sw.dataset.toggle, visible = sw.classList.contains('on'); if (key === 'romaji') document.body.classList.toggle('hide-romaji', !visible); if (key === 'translation') document.body.classList.toggle('hide-translation', !visible); if (key === 'notes') document.body.classList.toggle('hide-notes', !visible); if (key === 'sideNotes') {{ showSideNotes = visible; activeIndex = -1; update(); }} }}; sw.addEventListener('click', toggle); sw.addEventListener('keydown', event => {{ if (event.key === 'Enter' || event.key === ' ') {{ event.preventDefault(); toggle(); }} }}); }});
 renderLyrics(); update(); requestAnimationFrame(tick);
 </script></body></html>"""

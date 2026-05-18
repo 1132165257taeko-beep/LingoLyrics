@@ -1,16 +1,16 @@
 ---
 name: format-japanese-lyrics
-description: "Format Japanese song lyrics for study from two paired input files: a Japanese lyrics + Chinese translation file and a Japanese lyrics + romaji file. Use when Codex needs to merge lyric lines, romaji, translations, pronunciation emphasis, and concise Chinese grammar/vocabulary notes into a structured Markdown lyric sheet for Japanese learning."
+description: "Format Japanese song lyrics for study from a Japanese lyrics + Chinese translation file, optionally with a Japanese lyrics + romaji file. Use when Codex needs to merge lyric lines, generate or align romaji, translations, pronunciation emphasis, and concise Chinese grammar/vocabulary notes into a structured Markdown lyric sheet for Japanese learning."
 ---
 
 # Format Japanese Lyrics
 
 ## Goal
 
-Create a study-ready Markdown lyric sheet from two source files:
+Create a study-ready Markdown lyric sheet from one or two source files:
 
 - `lyrics + translation`: alternating Japanese lyric line and Simplified Chinese translation line, with optional title/credit header.
-- `lyrics + romaji`: alternating Japanese lyric line and spaced romaji line, with the same optional title/credit header.
+- Optional `lyrics + romaji`: alternating Japanese lyric line and spaced romaji line, with the same optional title/credit header.
 
 The final output should match this block pattern:
 
@@ -31,18 +31,22 @@ Chinese translation line
 
 ## Workflow
 
-1. Read both input files and the desired output path from the user. If paths are omitted, infer common names such as `歌词翻译`, `歌词罗马音`, and `歌词_格式化.md` in the current song folder.
+1. Read the translation input file, optional romaji input file, and desired output path from the user. If paths are omitted, infer common names such as `歌词翻译`, optional `歌词罗马音`, and `歌词_格式化.md` in the current song folder.
 2. Preserve the header from the translation file: song title, artist/title variant, lyricist, composer, or other non-paired metadata.
-3. Align body lines by Japanese lyric line. Each output block must contain Japanese, romaji, Chinese translation, then notes.
-4. If alignment is uncertain, use `scripts/build_lyrics_skeleton.py` to generate a skeleton and inspect warnings before adding notes.
-5. Add annotations in Simplified Chinese using the guidance in `references/annotation-guidelines.md`.
-6. Separate every lyric block with `---`. Keep repeated chorus blocks repeated; do not collapse them unless the user asks.
-7. Save as Markdown. Prefer the user's requested filename; otherwise use `歌词_格式化.md` in the song folder.
+3. Each output block must contain Japanese, romaji, Chinese translation, then notes.
+4. If a romaji file exists, align body lines by Japanese lyric line.
+5. If no romaji file exists, generate romaji yourself from the Japanese lyric line. Do not omit the romaji line.
+6. If alignment is uncertain, use `scripts/build_lyrics_skeleton.py` to generate a skeleton and inspect warnings before adding notes.
+7. Add annotations in Simplified Chinese using the guidance in `references/annotation-guidelines.md`.
+8. Separate every lyric block with `---`. Keep repeated chorus blocks repeated; do not collapse them unless the user asks.
+9. Save as Markdown. Prefer the user's requested filename; otherwise use `歌词_格式化.md` in the song folder.
 
 ## Formatting Rules
 
 - Keep the original Japanese lyric text exactly as supplied unless the user explicitly asks to correct text or encoding.
 - Keep romaji spaced by kana/mora style, for example `na ma e`, `ko u su i`, `ta da`.
+- When generating romaji without a romaji source file, infer standard readings from context and common song pronunciation. Use Hepburn-style consonants with the repo's mora spacing style, e.g. `shi`, `chi`, `tsu`, `fu`, `ja`, `jo`, `ryo`; split long vowels as `o u`, `e i`, etc.
+- Preserve English words in the romaji line as English words, such as `Welcome Back`, `Red Red Check`, `Museum: Zero`.
 - Preserve English words in the lyric as originally styled, such as `Harmony`, `Heart Beat`, `Moonlight`.
 - Put the Chinese translation immediately after the romaji line.
 - Use numbered annotations `①`, `②`, `③` in order. Usually 1-4 notes per line is enough; use more only when the line is dense.
@@ -71,7 +75,16 @@ python .\format-japanese-lyrics\scripts\build_lyrics_skeleton.py `
   --header-lines 4
 ```
 
-Then replace each `<!-- annotations -->` placeholder with concise numbered notes and add romaji emphasis.
+If no romaji file exists, omit `--romaji`:
+
+```powershell
+python .\format-japanese-lyrics\scripts\build_lyrics_skeleton.py `
+  --translation .\Museum_0\歌词翻译 `
+  --output .\Museum_0\歌词_骨架.md `
+  --header-lines 4
+```
+
+Then replace each `<!-- romaji -->` placeholder with generated romaji, replace each `<!-- annotations -->` placeholder with concise numbered notes, and add romaji emphasis if useful.
 
 If the script reports mismatched Japanese lines, inspect the nearby source lines manually. Do not silently discard or reorder lyrics.
 
@@ -82,5 +95,5 @@ Before finishing, verify:
 - Every non-header lyric block has Japanese, romaji, and Chinese translation in that order.
 - `---` separators are present between blocks.
 - Notes use Simplified Chinese and numbered markers.
-- Romaji style is consistent with the source file.
+- Romaji style is consistent with the source file, or consistently generated in mora-spaced Hepburn style when no source file exists.
 - The output has no unfinished placeholders unless the user explicitly requested a skeleton only.

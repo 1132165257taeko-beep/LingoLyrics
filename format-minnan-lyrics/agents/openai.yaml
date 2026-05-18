@@ -1,0 +1,4 @@
+interface:
+  display_name: "Minnan Lyrics Formatter"
+  short_description: "Format Minnan lyrics with Bbánlám pìngyīm and focused notes."
+  default_prompt: "Use $format-minnan-lyrics to turn Minnan lyrics translation and romanization files into annotated Markdown for Mandarin-speaking learners."

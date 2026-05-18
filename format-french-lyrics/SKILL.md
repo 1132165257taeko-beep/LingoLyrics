@@ -1,4 +1,4 @@
-﻿---
+---
 name: format-french-lyrics
 description: "Format French song lyrics for study from a paired French lyrics + Chinese translation file. Use when Codex needs to add French phonetic transcription, translations, and detailed Simplified Chinese grammar/vocabulary notes into a structured Markdown lyric sheet for French learning."
 ---
