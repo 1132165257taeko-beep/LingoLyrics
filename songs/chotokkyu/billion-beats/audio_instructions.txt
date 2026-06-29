@@ -1,0 +1,10 @@
+Audio file provided by user. To upload the actual audio into the repository using Git LFS, either:
+
+1) Push the audio file to a temporary branch named `upload/billionbeats-1` at path `songs/chotokkyu/billion-beats/incoming/audio.mp3` (recommended). Then tell me the branch; I'll move it into `songs/chotokkyu/billion-beats/audio.mp3` and finish the PR.
+
+2) Or grant me permission to download from the provided link and I'll fetch and upload (if you prefer, confirm explicitly here). Note: I cannot download from some hosts if access is restricted.
+
+Provided download URL:
+https://car-lw.kuwo.cn/045a81bcf0ecf4f7578cec9443e84060/6a4294aa/resource/30106/trackmedia/M800001yIT0V1LQ9Qw.mp3
+
+(If you want me to attempt the download and upload, reply: "Fetch and upload audio".)
